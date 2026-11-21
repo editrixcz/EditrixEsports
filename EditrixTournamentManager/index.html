@@ -1,0 +1,832 @@
+
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EDITRIX ESPORTS</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+* { box-sizing: border-box; }
+
+:root {
+    --bg: #080e19;
+    --panel: #111d30;
+    --panel2: #16263d;
+    --blue: #2999f5;
+    --light: #eaf3ff;
+    --muted: #8fa3bd;
+    --border: #263d5a;
+}
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--light);
+    font-family: Arial, sans-serif;
+}
+
+header {
+    min-height: 78px;
+    padding: 0 7%;
+    background: #0d1727;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+.logo {
+    font-size: 25px;
+    font-weight: 900;
+    letter-spacing: 3px;
+    color: var(--blue);
+}
+
+.logo small {
+    display: block;
+    color: #a8b9d0;
+    font-size: 9px;
+    letter-spacing: 4px;
+    margin-top: 4px;
+}
+
+nav {
+    display: flex;
+    gap: 25px;
+    flex-wrap: wrap;
+}
+
+nav a {
+    color: #aebed3;
+    text-decoration: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+nav a:hover, nav a.active { color: var(--blue); }
+
+.page { display: none; }
+.page.active { display: block; }
+
+.hero {
+    min-height: 490px;
+    padding: 75px 8%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 30px;
+    background:
+        radial-gradient(ellipse at 80% 50%, #16477a55, transparent 48%),
+        linear-gradient(110deg, #0b1423, #102844 65%, #091321);
+    border-bottom: 1px solid var(--border);
+}
+
+.hero-content { max-width: 650px; }
+
+.eyebrow {
+    color: var(--blue);
+    font-size: 12px;
+    letter-spacing: 3px;
+    font-weight: bold;
+}
+
+.hero h1 {
+    font-size: clamp(42px, 6vw, 75px);
+    line-height: 1.05;
+    margin: 18px 0;
+}
+
+.hero h1 span { color: var(--blue); }
+
+.hero p {
+    color: var(--muted);
+    font-size: 17px;
+    line-height: 1.7;
+}
+
+.trophy {
+    font-size: clamp(110px, 17vw, 190px);
+    filter: drop-shadow(0 0 35px #238dfc66);
+    text-align: center;
+}
+
+.button {
+    display: inline-block;
+    border: 0;
+    background: var(--blue);
+    color: white;
+    padding: 14px 23px;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 15px;
+}
+
+.button:hover { background: #0876ce; }
+
+.button.secondary {
+    background: #203754;
+    border: 1px solid #385575;
+}
+
+main {
+    padding: 50px 7%;
+    max-width: 1500px;
+    margin: auto;
+}
+
+.section-title {
+    margin: 0 0 25px;
+    font-size: 25px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+}
+
+.card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 23px;
+}
+
+.card h2, .card h3 { margin-top: 8px; }
+
+.muted { color: var(--muted); }
+
+.status {
+    color: var(--blue);
+    font-size: 11px;
+    letter-spacing: 1px;
+    font-weight: bold;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 18px;
+    margin-top: 35px;
+}
+
+.stat {
+    text-align: center;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 25px 10px;
+}
+
+.stat strong {
+    display: block;
+    font-size: 34px;
+    color: var(--blue);
+    margin-bottom: 8px;
+}
+
+.progress {
+    height: 10px;
+    background: #243750;
+    border-radius: 20px;
+    overflow: hidden;
+    margin: 15px 0;
+}
+
+.progress div {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #0876ce, #50b4ff);
+    transition: width .4s;
+}
+
+input {
+    display: block;
+    width: 100%;
+    max-width: 450px;
+    padding: 14px;
+    margin: 12px 0;
+    background: #0a1423;
+    border: 1px solid #344c69;
+    color: white;
+    border-radius: 5px;
+}
+
+input:focus {
+    outline: 1px solid var(--blue);
+}
+
+.team {
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 17px;
+    margin-top: 12px;
+}
+
+.team strong { color: var(--blue); }
+
+.team p { color: var(--muted); }
+
+.empty {
+    color: var(--muted);
+    padding: 20px 0;
+}
+
+.message {
+    margin-top: 15px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+footer {
+    text-align: center;
+    padding: 35px;
+    border-top: 1px solid var(--border);
+    color: #7288a4;
+    font-size: 13px;
+}
+
+footer strong { color: var(--blue); }
+
+@media(max-width:750px) {
+    header {
+        padding: 20px;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    nav { gap: 15px; }
+
+    .hero {
+        flex-direction: column;
+        text-align: center;
+        padding: 55px 6%;
+    }
+
+    .trophy { font-size: 115px; }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <div class="logo">
+        EDITRIX
+        <small>ESPORTS</small>
+    </div>
+
+    <nav>
+        <a class="active" onclick="showPage('home',this)">DOMŮ</a>
+        <a onclick="showPage('tournaments',this)">TURNAJE</a>
+        <a onclick="showPage('teams',this)">TÝMY</a>
+        <a onclick="showPage('results',this)">VÝSLEDKY</a>
+        <a onclick="showPage('hall',this)">HALL OF FAME</a>
+    </nav>
+</header>
+
+<!-- DOMŮ -->
+
+<div id="home" class="page active">
+
+<section class="hero">
+    <div class="hero-content">
+        <div class="eyebrow">ESPORTS TOURNAMENT PLATFORM</div>
+
+        <h1>PLAY.<br>COMPETE.<br><span>WIN.</span></h1>
+
+        <p>
+            Vstup do světa komunitního esportu.
+            Reprezentuj svůj tým, soutěž a bojuj o vítězství.
+        </p>
+
+        <button class="button" onclick="showPage('tournaments')">
+            PROHLÉDNOUT TURNAJE
+        </button>
+    </div>
+
+    <div class="trophy">🏆</div>
+</section>
+
+<main>
+    <h2 class="section-title">AKTUÁLNÍ TURNAJ</h2>
+
+    <div class="card">
+        <div class="status" id="homeStatus">NAČÍTÁNÍ...</div>
+        <h2>EDITRIX CUP #1</h2>
+        <p class="muted">Counter-Strike 2 • 2v2 • Zdarma</p>
+
+        <h2 id="homeCount">0 / 16 týmů</h2>
+
+        <div class="progress">
+            <div id="homeProgress"></div>
+        </div>
+
+        <p class="muted" id="homeInfo">
+            Načítání registrací...
+        </p>
+
+        <button class="button" onclick="showPage('teams')">
+            REGISTROVAT TÝM
+        </button>
+    </div>
+
+    <div class="stats">
+        <div class="stat">
+            <strong id="statTeams">0</strong>
+            Registrovaných týmů
+        </div>
+
+        <div class="stat">
+            <strong>16</strong>
+            Maximální kapacita
+        </div>
+
+        <div class="stat">
+            <strong>0 Kč</strong>
+            Vstupné
+        </div>
+    </div>
+</main>
+</div>
+
+<!-- TURNAJE -->
+
+<div id="tournaments" class="page">
+<main>
+    <h1 class="section-title">TURNAJE</h1>
+
+    <div class="card">
+        <div class="status" id="tournamentStatus">NAČÍTÁNÍ...</div>
+        <h2>EDITRIX CUP #1</h2>
+        <p class="muted">Counter-Strike 2 | 2v2</p>
+        <p>Komunitní turnaj pro hráče CS2.</p>
+
+        <h2 id="tournamentCount">0 / 16 týmů</h2>
+
+        <div class="progress">
+            <div id="tournamentProgress"></div>
+        </div>
+
+        <p>Minimálně 2 týmy. Maximálně 16 týmů.</p>
+
+        <button class="button" onclick="showPage('teams')">
+            REGISTRACE TÝMU
+        </button>
+    </div>
+</main>
+</div>
+
+<!-- TÝMY -->
+
+<div id="teams" class="page">
+<main>
+    <h1 class="section-title">REGISTRACE TÝMU</h1>
+
+    <div class="card">
+        <div class="status">EDITRIX CUP #1</div>
+
+        <h2>Vytvoř svůj tým</h2>
+
+        <p class="muted">
+            Zaregistruj dva hráče do turnaje Counter-Strike 2.
+        </p>
+
+        <form id="teamForm">
+            <input id="teamName"
+                placeholder="Název týmu"
+                maxlength="40"
+                required>
+
+            <input id="player1"
+                placeholder="Steam přezdívka hráče 1"
+                maxlength="32"
+                required>
+
+            <input id="player2"
+                placeholder="Steam přezdívka hráče 2"
+                maxlength="32"
+                required>
+
+            <button class="button" id="registerButton" type="submit">
+                REGISTROVAT TÝM
+            </button>
+        </form>
+
+        <div class="message" id="formMessage"></div>
+    </div>
+
+    <h2 class="section-title" style="margin-top:40px">
+        REGISTROVANÉ TÝMY
+    </h2>
+
+    <div id="teamList">
+        <p class="empty">Načítání týmů...</p>
+    </div>
+</main>
+</div>
+
+<!-- VÝSLEDKY -->
+
+<div id="results" class="page">
+<main>
+    <h1 class="section-title">VÝSLEDKY</h1>
+
+    <div class="card">
+        <div class="trophy">🏆</div>
+        <h2>EDITRIX CUP #1</h2>
+        <p class="muted">
+            Výsledky zápasů budou zveřejněny po odehrání turnaje.
+        </p>
+    </div>
+</main>
+</div>
+
+<!-- HALL OF FAME -->
+
+<div id="hall" class="page">
+<main>
+    <h1 class="section-title">HALL OF FAME</h1>
+
+    <div class="card" style="text-align:center">
+        <div class="trophy">🏆</div>
+        <h2>EDITRIX CHAMPIONS</h2>
+
+        <p class="muted">
+            Zde budou zvěčněni vítězové turnajů EDITRIX ESPORTS.
+        </p>
+
+        <p class="status">PRVNÍ ŠAMPION ČEKÁ NA SVOU PŘÍLEŽITOST</p>
+    </div>
+</main>
+</div>
+
+<footer>
+    <strong>EDITRIX ESPORTS</strong>
+    <br><br>
+    Community Tournament Platform © 2026
+</footer>
+
+<script>
+
+// =================================
+// SUPABASE NASTAVENÍ
+// =================================
+
+const SUPABASE_URL = "https://yirrxbgnavoilxucfuez.supabase.co";
+
+// Vlož sem svůj Publishable key:
+const SUPABASE_KEY = "sb_publishable_W29cg8-4xepGkKh5jhWr3g_K39TjSct";
+
+const supabaseReady =
+    window.supabase &&
+    SUPABASE_KEY !== "VLOZ_SEM_SVŮJ_PUBLISHABLE_KEY" &&
+    SUPABASE_KEY.trim() !== "";
+
+const db = supabaseReady
+    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+    : null;
+
+let tournamentId = null;
+let teams = [];
+const MAX_TEAMS = 16;
+
+
+// =================================
+// NAVIGACE
+// =================================
+
+function showPage(id, link) {
+    document.querySelectorAll(".page").forEach(page => {
+        page.classList.remove("active");
+    });
+
+    document.getElementById(id).classList.add("active");
+
+    document.querySelectorAll("nav a").forEach(a => {
+        a.classList.remove("active");
+    });
+
+    if (link) link.classList.add("active");
+
+    if (id === "teams") loadTeams();
+
+    window.scrollTo(0, 0);
+}
+
+
+// =================================
+// NAČTENÍ TURNAJE
+// =================================
+
+async function loadTournament() {
+    if (!db) {
+        setStatus("CHYBÍ API KLÍČ");
+        return;
+    }
+
+    const { data, error } = await db
+        .from("tournaments")
+        .select("*")
+        .eq("slug", "editrix-cup-1")
+        .maybeSingle();
+
+    if (error) {
+        console.error(error);
+        setStatus("CHYBA DATABÁZE");
+        return;
+    }
+
+    if (!data) {
+        setStatus("TURNAJ NENALEZEN");
+        return;
+    }
+
+    tournamentId = data.id;
+    updateStatus(data.status);
+
+    await loadTeams();
+}
+
+
+// =================================
+// NAČTENÍ TÝMŮ
+// =================================
+
+async function loadTeams() {
+    if (!db || !tournamentId) return;
+
+    const { data, error } = await db
+        .from("teams")
+        .select("id, team_name, player1, player2, created_at")
+        .eq("tournament_id", tournamentId)
+        .order("created_at", { ascending: true });
+
+    if (error) {
+        console.error(error);
+        document.getElementById("teamList").textContent =
+            "Nepodařilo se načíst týmy.";
+        return;
+    }
+
+    teams = data || [];
+
+    renderTeams();
+    updateCounters();
+}
+
+
+// =================================
+// VYKRESLENÍ TÝMŮ
+// =================================
+
+function renderTeams() {
+    const list = document.getElementById("teamList");
+    list.replaceChildren();
+
+    if (teams.length === 0) {
+        const p = document.createElement("p");
+        p.className = "empty";
+        p.textContent = "Zatím nejsou registrované žádné týmy.";
+        list.appendChild(p);
+        return;
+    }
+
+    teams.forEach((team, index) => {
+        const card = document.createElement("div");
+        card.className = "team";
+
+        const title = document.createElement("strong");
+        title.textContent = (index + 1) + ". " + team.team_name;
+
+        const players = document.createElement("p");
+        players.textContent =
+            team.player1 + " & " + team.player2;
+
+        card.appendChild(title);
+        card.appendChild(players);
+        list.appendChild(card);
+    });
+}
+
+
+// =================================
+// POČÍTADLA
+// =================================
+
+function updateCounters() {
+    const count = teams.length;
+    const percent = Math.min((count / MAX_TEAMS) * 100, 100);
+
+    document.getElementById("homeCount").textContent =
+        count + " / " + MAX_TEAMS + " týmů";
+
+    document.getElementById("tournamentCount").textContent =
+        count + " / " + MAX_TEAMS + " týmů";
+
+    document.getElementById("statTeams").textContent = count;
+
+    document.getElementById("homeProgress").style.width =
+        percent + "%";
+
+    document.getElementById("tournamentProgress").style.width =
+        percent + "%";
+
+    document.getElementById("homeInfo").textContent =
+        count < 2
+        ? "Potřebujeme ještě alespoň " + (2 - count) + " tým(y)."
+        : count >= MAX_TEAMS
+        ? "Turnaj je plně obsazen!"
+        : "Turnaj má dostatek týmů pro uskutečnění.";
+}
+
+
+// =================================
+// STAV TURNAJE
+// =================================
+
+function setStatus(text) {
+    document.getElementById("homeStatus").textContent = text;
+    document.getElementById("tournamentStatus").textContent = text;
+}
+
+function updateStatus(status) {
+    const labels = {
+        upcoming: "PŘIPRAVUJE SE",
+        registration_open: "REGISTRACE OTEVŘENY",
+        in_progress: "TURNAJ PROBÍHÁ",
+        completed: "UKONČENO"
+    };
+
+    setStatus(labels[status] || "NEZNÁMÝ STAV");
+}
+
+
+// =================================
+// REGISTRACE TÝMU
+// =================================
+
+document.getElementById("teamForm").addEventListener("submit",
+async function(event) {
+
+    event.preventDefault();
+
+    const message = document.getElementById("formMessage");
+    const button = document.getElementById("registerButton");
+
+    if (!db) {
+        message.textContent = "Nejdříve nastav Supabase API klíč.";
+        return;
+    }
+
+    if (!tournamentId) {
+        message.textContent = "Turnaj se zatím nepodařilo načíst.";
+        return;
+    }
+
+    const name = document.getElementById("teamName").value.trim();
+    const p1 = document.getElementById("player1").value.trim();
+    const p2 = document.getElementById("player2").value.trim();
+
+    if (!name || !p1 || !p2) {
+        message.textContent = "Vyplň všechna pole.";
+        return;
+    }
+
+    if (p1.toLowerCase() === p2.toLowerCase()) {
+        message.textContent = "Oba hráči musí být rozdílní.";
+        return;
+    }
+
+    if (teams.length >= MAX_TEAMS) {
+        message.textContent = "Turnaj je již plně obsazen.";
+        return;
+    }
+
+    button.disabled = true;
+    button.textContent = "REGISTRUJI...";
+
+    message.textContent = "";
+
+    try {
+        const { data: tournament, error: tournamentError } =
+            await db
+                .from("tournaments")
+                .select("status")
+                .eq("id", tournamentId)
+                .single();
+
+        if (tournamentError) throw tournamentError;
+
+        if (tournament.status !== "registration_open") {
+            message.textContent = "Registrace jsou uzavřené.";
+            return;
+        }
+
+        const { count, error: countError } = await db
+            .from("teams")
+            .select("*", { count: "exact", head: true })
+            .eq("tournament_id", tournamentId);
+
+        if (countError) throw countError;
+
+        if (count >= MAX_TEAMS) {
+            message.textContent = "Turnaj je již plně obsazen.";
+            await loadTeams();
+            return;
+        }
+
+        const { error } = await db
+            .from("teams")
+            .insert([{
+                tournament_id: tournamentId,
+                team_name: name,
+                player1: p1,
+                player2: p2
+            }]);
+
+        if (error) {
+            if (error.code === "23505") {
+                message.textContent =
+                    "Tým s tímto názvem již existuje.";
+            } else {
+                throw error;
+            }
+            return;
+        }
+
+        document.getElementById("teamForm").reset();
+
+        message.textContent =
+            "Tým byl úspěšně zaregistrován!";
+
+        await loadTeams();
+
+    } catch (error) {
+        console.error(error);
+        message.textContent =
+            "Registrace se nezdařila. Zkus to znovu.";
+    } finally {
+        button.disabled = false;
+        button.textContent = "REGISTROVAT TÝM";
+    }
+});
+
+
+// =================================
+// AUTOMATICKÉ AKTUALIZACE
+// =================================
+
+function startRealtime() {
+    if (!db || !tournamentId) return;
+
+    db.channel("editrix-teams")
+        .on(
+            "postgres_changes",
+            {
+                event: "*",
+                schema: "public",
+                table: "teams",
+                filter: "tournament_id=eq." + tournamentId
+            },
+            () => loadTeams()
+        )
+        .subscribe();
+}
+
+
+// =================================
+// SPUŠTĚNÍ
+// =================================
+
+async function startApp() {
+    if (!db) {
+        setStatus("ČEKÁ NA NASTAVENÍ API KLÍČE");
+        document.getElementById("homeInfo").textContent =
+            "Pro zobrazení registrací nastav Supabase API klíč.";
+        document.getElementById("teamList").textContent =
+            "Databáze zatím není připojena.";
+        return;
+    }
+
+    await loadTournament();
+
+    startRealtime();
+
+    // Záložní aktualizace každých 15 sekund
+    setInterval(loadTeams, 15000);
+}
+
+startApp();
+
+</script>
+
+</body>
+</html>
